@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票交易计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+
+        .form-group label {
+            min-width: 120px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+
+        .result {
+            background: #e8f5e8;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+
+        .result-title {
+            color: #155724;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #c3e6c3;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #155724;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-group label {
+                min-width: auto;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>股票交易计算器</h1>
+            <p>精确计算您的交易盈亏和风险管理参数</p>
+        </div>
+
+        <div class="content">
+            <form id="stockCalculator">
+                <div class="section">
+                    <div class="section-title">基础参数</div>
+                    <div class="form-group">
+                        <label for="entryPrice">入场价格：</label>
+                        <input type="number" id="entryPrice" step="0.01" required>
+                        <span>元</span>
+                    </div>
+                    <div class="form-group">
+                        <label>交易方向：</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="long" name="direction" value="long" checked>
+                                <label for="long">做多</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="short" name="direction" value="short">
+                                <label for="short">做空</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">仓位参数（只需填写一项）</div>
+                    <div class="form-group">
+                        <label for="shares">交易股数：</label>
+                        <input type="number" id="shares" min="0">
+                        <span>股</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="totalAmount">交易总金额：</label>
+                        <input type="number" id="totalAmount" step="0.01" min="0">
+                        <span>元</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">止损参数（只需填写一项）</div>
+                    <div class="form-group">
+                        <label for="stopLossPrice">止损价格：</label>
+                        <input type="number" id="stopLossPrice" step="0.01" min="0">
+                        <span>元</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="stopLossPercent">止损百分比：</label>
+                        <input type="number" id="stopLossPercent" step="0.01" value="4">
+                        <span>%</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="stopLossAmount">止损亏损总额：</label>
+                        <input type="number" id="stopLossAmount" step="0.01" min="0">
+                        <span>元</span>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">止盈参数（只需填写一项）</div>
+                    <div class="form-group">
+                        <label for="takeProfitPrice">止盈价格：</label>
+                        <input type="number" id="takeProfitPrice" step="0.01" min="0">
+                        <span>元</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="takeProfitPercent">止盈百分比：</label>
+                        <input type="number" id="takeProfitPercent" step="0.01" value="2">
+                        <span>%</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="takeProfitAmount">止盈盈利总额：</label>
+                        <input type="number" id="takeProfitAmount" step="0.01" min="0">
+                        <span>元</span>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" class="btn btn-calculate" onclick="calculate()">计算</button>
+                    <button type="button" class="btn btn-reset" onclick="resetForm()">重置</button>
+                </div>
+            </form>
+
+            <div id="result" class="result" style="display: none;">
+                <div class="result-title">计算结果</div>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+            const direction = document.querySelector('input[name="direction"]:checked').value;
+            
+            if (!entryPrice || entryPrice <= 0) {
+                alert('请输入有效的入场价格');
+                return;
+            }
+
+            // 计算仓位参数
+            let shares = parseFloat(document.getElementById('shares').value) || 0;
+            let totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+
+            if (shares > 0 && totalAmount === 0) {
+                totalAmount = shares * entryPrice;
+                document.getElementById('totalAmount').value = totalAmount.toFixed(2);
+            } else if (totalAmount > 0 && shares === 0) {
+                shares = Math.floor(totalAmount / entryPrice);
+                document.getElementById('shares').value = shares;
+                totalAmount = shares * entryPrice; // 重新计算精确金额
+            } else if (shares === 0 && totalAmount === 0) {
+                alert('请至少填写交易股数或交易总金额中的一项');
+                return;
+            }
+
+            // 计算止损参数
+            let stopLossPrice = parseFloat(document.getElementById('stopLossPrice').value) || 0;
+            let stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value) || 0;
+            let stopLossAmount = parseFloat(document.getElementById('stopLossAmount').value) || 0;
+
+            if (stopLossPrice > 0) {
+                if (direction === 'long') {
+                    stopLossPercent = ((entryPrice - stopLossPrice) / entryPrice * 100);
+                } else {
+                    stopLossPercent = ((stopLossPrice - entryPrice) / entryPrice * 100);
+                }
+                stopLossAmount = Math.abs(shares * (entryPrice - stopLossPrice));
+            } else if (stopLossPercent > 0) {
+                if (direction === 'long') {
+                    stopLossPrice = entryPrice * (1 - stopLossPercent / 100);
+                } else {
+                    stopLossPrice = entryPrice * (1 + stopLossPercent / 100);
+                }
+                stopLossAmount = totalAmount * stopLossPercent / 100;
+            } else if (stopLossAmount > 0) {
+                stopLossPercent = (stopLossAmount / totalAmount * 100);
+                if (direction === 'long') {
+                    stopLossPrice = entryPrice - (stopLossAmount / shares);
+                } else {
+                    stopLossPrice = entryPrice + (stopLossAmount / shares);
+                }
+            }
+
+            // 计算止盈参数
+            let takeProfitPrice = parseFloat(document.getElementById('takeProfitPrice').value) || 0;
+            let takeProfitPercent = parseFloat(document.getElementById('takeProfitPercent').value) || 0;
+            let takeProfitAmount = parseFloat(document.getElementById('takeProfitAmount').value) || 0;
+
+            if (takeProfitPrice > 0) {
+                if (direction === 'long') {
+                    takeProfitPercent = ((takeProfitPrice - entryPrice) / entryPrice * 100);
+                } else {
+                    takeProfitPercent = ((entryPrice - takeProfitPrice) / entryPrice * 100);
+                }
+                takeProfitAmount = Math.abs(shares * (takeProfitPrice - entryPrice));
+            } else if (takeProfitPercent > 0) {
+                if (direction === 'long') {
+                    takeProfitPrice = entryPrice * (1 + takeProfitPercent / 100);
+                } else {
+                    takeProfitPrice = entryPrice * (1 - takeProfitPercent / 100);
+                }
+                takeProfitAmount = totalAmount * takeProfitPercent / 100;
+            } else if (takeProfitAmount > 0) {
+                takeProfitPercent = (takeProfitAmount / totalAmount * 100);
+                if (direction === 'long') {
+                    takeProfitPrice = entryPrice + (takeProfitAmount / shares);
+                } else {
+                    takeProfitPrice = entryPrice - (takeProfitAmount / shares);
+                }
+            }
+
+            // 更新表单中的计算值
+            document.getElementById('shares').value = shares;
+            document.getElementById('totalAmount').value = totalAmount.toFixed(2);
+            document.getElementById('stopLossPrice').value = stopLossPrice.toFixed(2);
+            document.getElementById('stopLossPercent').value = Math.abs(stopLossPercent).toFixed(2);
+            document.getElementById('stopLossAmount').value = stopLossAmount.toFixed(2);
+            document.getElementById('takeProfitPrice').value = takeProfitPrice.toFixed(2);
+            document.getElementById('takeProfitPercent').value = Math.abs(takeProfitPercent).toFixed(2);
+            document.getElementById('takeProfitAmount').value = takeProfitAmount.toFixed(2);
+
+            // 显示结果
+            displayResults(entryPrice, direction, shares, totalAmount, stopLossPrice, stopLossPercent, stopLossAmount, takeProfitPrice, takeProfitPercent, takeProfitAmount);
+        }
+
+        function displayResults(entryPrice, direction, shares, totalAmount, stopLossPrice, stopLossPercent, stopLossAmount, takeProfitPrice, takeProfitPercent, takeProfitAmount) {
+            const resultContent = document.getElementById('resultContent');
+            const directionText = direction === 'long' ? '做多' : '做空';
+            
+            resultContent.innerHTML = `
+                <div class="result-item">
+                    <span>交易方向：</span>
+                    <span class="result-value">${directionText}</span>
+                </div>
+                <div class="result-item">
+                    <span>入场价格：</span>
+                    <span class="result-value">${entryPrice.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>交易股数：</span>
+                    <span class="result-value">${shares} 股</span>
+                </div>
+                <div class="result-item">
+                    <span>交易总金额：</span>
+                    <span class="result-value">${totalAmount.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>止损价格：</span>
+                    <span class="result-value">${stopLossPrice.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>止损百分比：</span>
+                    <span class="result-value">${Math.abs(stopLossPercent).toFixed(2)}%</span>
+                </div>
+                <div class="result-item">
+                    <span>止损亏损总额：</span>
+                    <span class="result-value">${stopLossAmount.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>止盈价格：</span>
+                    <span class="result-value">${takeProfitPrice.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>止盈百分比：</span>
+                    <span class="result-value">${Math.abs(takeProfitPercent).toFixed(2)}%</span>
+                </div>
+                <div class="result-item">
+                    <span>止盈盈利总额：</span>
+                    <span class="result-value">${takeProfitAmount.toFixed(2)} 元</span>
+                </div>
+                <div class="result-item">
+                    <span>盈亏比：</span>
+                    <span class="result-value">${(takeProfitAmount / stopLossAmount).toFixed(2)} : 1</span>
+                </div>
+            `;
+            
+            document.getElementById('result').style.display = 'block';
+        }
+
+        function resetForm() {
+            document.getElementById('stockCalculator').reset();
+            document.getElementById('stopLossPercent').value = '4';
+            document.getElementById('takeProfitPercent').value = '2';
+            document.getElementById('result').style.display = 'none';
+        }
+
+        // 添加输入监听，实现实时计算
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    // 可以在这里添加实时计算逻辑
+                });
+            });
+        });
+    </script>
+</body>
+</html>
